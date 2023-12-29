@@ -1,0 +1,9 @@
+Large Bright Peak
+Large Bright Trough
+Large Dim Peak
+Large Dim Trough
+Small Bright Peak
+Small Bright Trough
+Small Dim Peak
+Small Dim Trough
+WSe2 Atoms
