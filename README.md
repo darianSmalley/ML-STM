@@ -1,5 +1,5 @@
 # ML-STM
-Atomic scale defect detection and analysis in scanning tunneling microscope images of single crystal tungsten diselenide via an ensemble of U-Net convolutional neural networks and unsupervised fuzzy clustering.
+Atomic scale defect detection and analysis in scanning tunneling microscope images of single crystal tungsten diselenide via an ensemble of U-Net convolutional neural networks and unsupervised fuzzy clustering. Use the iPython notebook in the root of the repository to get started.
 
 ## Links to Training Dataset
 The following google drive link will download a zip file which contains all of the data. The "./datastores/WSe2" folder in this GitHub repo should be *replaced* with the extracted folder from Google Drive.  
