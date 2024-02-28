@@ -6,7 +6,7 @@ from atomai.trainers import EnsembleTrainer
 from atomai.utils import extract_patches
 
 from ..datasets.WSe2_defect_dataset import WSe2DefectDataset_VIA
-from ..evaluate import eval_ensemble
+from ..evaluate import eval_ensemble, data_split
 
 print(torch.cuda.is_available())
 print(torch.cuda.device_count())
@@ -30,12 +30,14 @@ def gen_train_data(dataset):
     dataloader = torch.utils.data.DataLoader(
         dataset, batch_size=1, shuffle=True, num_workers=0, collate_fn=collate_fn
     )
-    images, masks, Z = dataset.load_all(dataloader)
-    images_all, labels_all = extract_patches(
-        images, masks, patch_size=256, num_patches=60
-    )
 
-    return images_all, labels_all
+    images, masks, Z = dataset.load_all(dataloader)
+
+    X_train, y_train, X_test, y_test = data_split(images, masks, 0.33)
+    X_train, y_train = extract_patches(X_train, y_train, patch_size=256, num_patches=60)
+    X_test, y_test = extract_patches(X_train, y_train, patch_size=256, num_patches=60)
+
+    return X_train, y_train, X_test, y_test
 
 
 def read_train_data():
@@ -47,6 +49,15 @@ def read_train_data():
     )
 
     return images_all, labels_all
+
+
+def read_train_test_data():
+    X_train = np.load("./output/WSe2-Defect-Training-Images_2024-02-23.npy")
+    y_train = np.load("./output/WSe2-Defect-Training-Labels_2024-02-23.npy")
+    X_test = np.load("./output/WSe2-Defect-Test-Images_2024-02-23.npy")
+    y_test = np.load("./output/WSe2-Defect-Test-Labels_2024-02-23.npy")
+
+    return X_train, y_train, X_test, y_test
 
 
 def split_train_data(images_all, labels_all):
@@ -80,15 +91,19 @@ def split_train_data(images_all, labels_all):
 def train_ensemble(n_models=10, regen_train_data=False, n_epochs=500):
     if regen_train_data:
         dataset = create_dataset()
-        images, labels = gen_train_data(dataset)
+        X_train, y_train, X_test, y_test = gen_train_data(dataset)
+
+        np.save("./output/WSe2-Defect-Training-Images_2024-02-23.npy", X_train)
+        np.save("./output/WSe2-Defect-Training-Labels_2024-02-23.npy", y_train)
+        np.save("./output/WSe2-Defect-Test-Images_2024-02-23.npy", X_test)
+        np.save("./output/WSe2-Defect-Test-Labels_2024-02-23.npy", y_test)
     else:
-        images, labels = read_train_data()
+        X_train, y_train, X_test, y_test = read_train_test_data()
 
-    train_data, val_data, test_data = split_train_data(images, labels)
-
-    images_train, labels_train = train_data
-    images_val, labels_val = val_data
-    images_test, labels_test = test_data
+    images_train, labels_train, images_val, labels_val = data_split(
+        X_train, y_train, 0.15
+    )
+    images_test, labels_test = X_test, y_test
 
     # Ititialize and compile ensemble trainer
     lr_scheduler = [1e-3]
